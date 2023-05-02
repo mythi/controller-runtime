@@ -458,22 +458,22 @@ func (cm *controllerManager) Start(ctx context.Context) (err error) {
 	// between conversion webhooks and the cache sync (usually initial list) which causes the webhooks
 	// to never start because no cache can be populated.
 	if err := cm.runnables.Webhooks.Start(cm.internalCtx); err != nil {
-		if !errors.Is(err, context.Canceled) {
-			return err
+		if err != nil {
+			return fmt.Errorf("failed to start webhooks: %w", err)
 		}
 	}
 
 	// Start and wait for caches.
 	if err := cm.runnables.Caches.Start(cm.internalCtx); err != nil {
-		if !errors.Is(err, context.Canceled) {
-			return err
+		if err != nil {
+			return fmt.Errorf("failed to start caches: %w", err)
 		}
 	}
 
 	// Start the non-leaderelection Runnables after the cache has synced.
 	if err := cm.runnables.Others.Start(cm.internalCtx); err != nil {
-		if !errors.Is(err, context.Canceled) {
-			return err
+		if err != nil {
+			return fmt.Errorf("failed to start other runnables: %w", err)
 		}
 	}
 
